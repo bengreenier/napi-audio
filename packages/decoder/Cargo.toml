@@ -1,0 +1,62 @@
+[package]
+edition = "2021"
+name = "napi-audio-decoder"
+version = "0.1.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[features]
+default = [
+    "container-aiff",
+    "container-caf",
+    "container-mp4",
+    "container-mkv",
+    "container-ogg",
+    "container-wav",
+    "codec-aac",
+    "codec-adpcm",
+    "codec-alac",
+    "codec-flac",
+    "codec-mp1",
+    "codec-mp2",
+    "codec-mp3",
+    "codec-vorbis",
+]
+
+container-aiff = ["symphonia/aiff"]
+container-caf = ["symphonia/caf"]
+container-mp4 = ["symphonia/isomp4"]
+container-mkv = ["symphonia/mkv"]
+container-ogg = ["symphonia/ogg"]
+container-wav = ["symphonia/wav"]
+
+codec-aac = ["symphonia/aac"]
+codec-adpcm = ["symphonia/adpcm"]
+codec-alac = ["symphonia/alac"]
+codec-flac = ["symphonia/flac"]
+codec-mp1 = ["symphonia/mpa", "symphonia/mp1"]
+codec-mp2 = ["symphonia/mpa", "symphonia/mp2"]
+codec-mp3 = ["symphonia/mpa", "symphonia/mp3"]
+codec-vorbis = ["symphonia/vorbis"]
+
+[dependencies]
+napi = { version = "2.12", default-features = false, features = ["napi4"] }
+napi-derive = "2.12"
+symphonia = { version = "0.5", features = ["opt-simd"] }
+crossbeam-channel = "0.5"
+thiserror = "1.0"
+tracing = "0.1"
+tracing-log = "0.2"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+napi-audio-decoder = { version = "*", path = "./", default-features = true }
+tracing-test = "0.2"
+
+[build-dependencies]
+napi-build = "2.0"
+
+[profile.release]
+lto = true
+strip = "symbols"

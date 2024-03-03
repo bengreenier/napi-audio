@@ -1,0 +1,15 @@
+{
+  "name": "@napi-audio/decoder-darwin-universal",
+  "version": "0.0.0",
+  "os": [
+    "darwin"
+  ],
+  "main": "decoder.darwin-universal.node",
+  "files": [
+    "decoder.darwin-universal.node"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 10"
+  }
+}

@@ -1,0 +1,3 @@
+# `@napi-audio/decoder-darwin-x64`
+
+This is the **x86_64-apple-darwin** binary for `@napi-audio/decoder`

@@ -1,0 +1,45 @@
+{
+  "name": "@napi-audio/decoder-stream",
+  "version": "0.1.0",
+  "description": "A streaming interface for @napi-audio/decoder.",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Ben Greenier",
+  "license": "MPL-2.0",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": {
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prepare": "npm run build-types",
+    "build": "npm-run-all --parallel build-*",
+    "build-lib": "tsup src/index.ts --format esm,cjs",
+    "build-types": "tsc -p ./tsconfig.lib.json --declaration --emitDeclarationOnly --outDir ./dist/types",
+    "test": "c8 --all --src=src uvu -r tsm",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "@napi-audio/decoder": "workspace:^"
+  },
+  "devDependencies": {
+    "@tsconfig/node20": "^20.1.2",
+    "c8": "^9.1.0",
+    "tsm": "^2.3.0",
+    "tsup": "^8.0.2",
+    "typescript": "^5.3.3",
+    "uvu": "^0.5.6"
+  }
+}

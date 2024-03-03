@@ -1,0 +1,18 @@
+{
+    "rust-analyzer.procMacro.ignored": {
+        "napi-derive": [
+            "napi"
+        ]
+    },
+    "cSpell.words": [
+        "gapless",
+        "aarch",
+        "androideabi",
+        "armv",
+        "gnueabihf",
+        "msvc",
+        "napi",
+        "riscv",
+        "runtimes"
+    ]
+}
