@@ -278,6 +278,7 @@ jobs:
 
       - name: Run publish
         run: |
+          git status
           pnpm config set provenance true
           echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
           pnpm publish --access public
