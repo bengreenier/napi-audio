@@ -171,7 +171,9 @@ jobs:
             sudo npm install -g yarn --ignore-scripts
             curl https://sh.rustup.rs -sSf --output rustup.sh
             sh rustup.sh -y --profile minimal --default-toolchain beta
-            curl -fsSL https://get.pnpm.io/install.sh | sh -
+            curl https://github.com/pnpm/pnpm/releases/download/v8.15.4/pnpm-linux-x64 -sSfL --output pnpm
+            chmod +x pnpm
+            sudo ./pnpm setup --force
             source "$HOME/.cargo/env"
             echo "~~~~ rustc --version ~~~~"
             rustc --version
