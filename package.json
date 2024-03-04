@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "turbo run build",
+    "build-native": "turbo run build-native",
     "test": "turbo run test",
     "lint": "turbo run lint"
   },

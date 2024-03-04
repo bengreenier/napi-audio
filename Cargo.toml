@@ -1,3 +1,7 @@
 [workspace]
 resolver = "2"
 members = ["packages/decoder"]
+
+[profile.release]
+lto = true
+strip = "symbols"

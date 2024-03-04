@@ -24,7 +24,6 @@
     "dist"
   ],
   "scripts": {
-    "prepare": "npm run build-types",
     "build": "npm-run-all --parallel build-*",
     "build-lib": "tsup src/index.ts --format esm,cjs",
     "build-types": "tsc -p ./tsconfig.lib.json --declaration --emitDeclarationOnly --outDir ./dist/types",
