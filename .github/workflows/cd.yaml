@@ -83,6 +83,10 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+
       - uses: pnpm/action-setup@v3
         with:
           run_install: false
