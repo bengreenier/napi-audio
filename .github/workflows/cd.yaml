@@ -133,7 +133,7 @@ jobs:
           version: 0.11.0
 
       - name: "[Non-Docker] Build native module"
-        if: ${{ !matrix.settings.docker }}
+        if: ${{ !matrix.settings.docker && matrix.settings.target != 'freebsd' }}
         run: |
           sh -c "${{ matrix.settings.setup_command }}" &&
           pnpm run build-native -- --target ${{ matrix.settings.target }} &&
