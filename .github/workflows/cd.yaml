@@ -192,7 +192,10 @@ jobs:
       # END OS SPECIFIC STEPS
 
       - name: Copy binding artifact
-        run: mkdir ./artifact-outputs && ./scripts/copy-artifacts.sh ./artifact-outputs
+        run: |
+          mkdir ./artifact-outputs &&
+          chmod +x ./scripts/copy-artifacts.sh &&
+          ./scripts/copy-artifacts.sh ./artifact-outputs
         shell: bash
 
       - name: Upload binding artifact
