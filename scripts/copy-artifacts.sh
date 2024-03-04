@@ -10,4 +10,4 @@ fi
 output_directory="$1"
 
 # Execute the provided command for each .node file found in the directory and its subdirectories
-find "./packages" -type f -name "*.node" -print0 | xargs -0 sh -c "set -x; for arg do echo \"Processing file \$arg\"; artifact_basename=\"\$(basename -- \$arg)\"; cp \$arg $output_directory\$artifact_basename; done" _
+find "./packages" -type f -name "*.node" -print0 | xargs -0 sh -c "set -x; for arg do echo \"Processing file \$arg\"; artifact_basename=\"\$(basename -- \$arg)\"; cp \$arg $output_directory/\$artifact_basename; done" _
