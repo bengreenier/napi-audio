@@ -21,4 +21,4 @@ echo "strip_binary_path: $strip_binary_path"
 echo "strip_binary_args: $strip_binary_args"
 
 # Execute the provided command for each .node file found in the directory and its subdirectories
-find "./packages" -type f -name "*.node" -print0 | xargs -0 sh -c "set -x; for arg do echo \"Processing file \$arg\"; $strip_binary_path \"$strip_binary_args\$arg\"; done" _
+find "./packages" -type f -name "*.node" -print0 | xargs -0 sh -c "set -x; for arg do echo \"Processing file \$arg\"; $strip_binary_path $strip_binary_args\$arg; done" _
