@@ -114,7 +114,7 @@ jobs:
         if: ${{ !matrix.settings.docker }}
         run: |
           sh -c "${{ matrix.settings.setup_command }}" &&
-          pnpm run build-native --target ${{ matrix.settings.target }} &&
+          pnpm run build-native -- --target ${{ matrix.settings.target }} &&
           chmod +x ./scripts/strip-symbols.sh &&
           ./scripts/strip-symbols.sh ${{ matrix.settings.strip_binary_path }} ${{ matrix.settings.strip_binary_args }}
 
@@ -127,7 +127,7 @@ jobs:
           run: |
             set -e &&
             sh -c "${{ matrix.settings.setup_command }}" &&
-            pnpm run build-native --target ${{ matrix.settings.target }} &&
+            pnpm run build-native -- --target ${{ matrix.settings.target }} &&
             chmod +x ./scripts/strip-symbols.sh &&
             ./scripts/strip-symbols.sh ${{ matrix.settings.strip_binary_path }} ${{ matrix.settings.strip_binary_args }}
 
