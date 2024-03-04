@@ -122,6 +122,12 @@ jobs:
 
       # BEGIN OS SPECIFIC STEPS
 
+      - name: "[armv7-unknown-linux-gnueabihf] Install zig"
+        uses: goto-bus-stop/setup-zig@v2
+        if: ${{ matrix.settings.target == 'armv7-unknown-linux-gnueabihf' }}
+        with:
+          version: 0.11.0
+
       - name: "[Non-Docker] Build native module"
         if: ${{ !matrix.settings.docker }}
         run: |
