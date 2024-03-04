@@ -9,7 +9,7 @@ on:
 jobs:
   build_bindings:
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         settings:
           - host: windows-latest
