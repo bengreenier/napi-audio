@@ -19,7 +19,7 @@ test("DecoderStream should decode", async () => {
         enableGapless: false,
         onMetadataDetected(channelCount, sampleRate) {
           assert.equal(channelCount, 2);
-          assert.equal(sampleRate, 22050);
+          assert.equal(sampleRate, 44100);
 
           assert.equal(this.channelCount, channelCount);
           assert.equal(this.sampleRate, sampleRate);

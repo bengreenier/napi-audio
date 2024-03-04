@@ -14,7 +14,10 @@
     "build": "napi build --platform --release",
     "build:debug": "napi build --platform",
     "prepublishOnly": "napi prepublish -t npm",
-    "test": "uvu ./__test__/",
+    "test": "npm-run-all --parallel test:*",
+    "test:js": "uvu ./__test__/",
+    "test:rs": "cargo test",
+    "lint": "cargo clippy",
     "universal": "napi universal",
     "version": "napi version"
   },

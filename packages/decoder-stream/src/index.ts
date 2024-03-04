@@ -115,6 +115,7 @@ export class DecoderStream extends Transform {
   }
 
   _transform(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     chunk: any,
     encoding: BufferEncoding,
     callback: TransformCallback
