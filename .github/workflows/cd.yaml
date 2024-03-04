@@ -171,7 +171,7 @@ jobs:
             sudo pkg install -y -f curl node libnghttp2 npm
             sudo npm install -g yarn --ignore-scripts
             curl https://sh.rustup.rs -sSf --output rustup.sh
-            sh rustup.sh -y --profile minimal --default-toolchain beta
+            sh rustup.sh -y --profile minimal --default-toolchain stable
             mkdir ~/bin
             corepack enable --install-directory ~/bin
             export PATH="$HOME/bin:$PATH"
@@ -182,7 +182,9 @@ jobs:
             node -v
             echo "~~~~ pnpm -v ~~~~"
             pnpm -v
-            pnpm run build-native -- --target ${{ matrix.settings.target }}
+            pnpm install
+            # turborepo is not supported on freebsd so just use pnpm with a filter to execute
+            pnpm run --filter @napi-audio/* build-native --target ${{ matrix.settings.target }}
 
       # END OS SPECIFIC STEPS
 
