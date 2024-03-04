@@ -1,5 +1,8 @@
 name: CD
 
+permissions:
+  contents: write
+
 on:
   push:
     branches:
@@ -9,84 +12,84 @@ on:
 jobs:
   build_bindings:
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         settings:
           - host: windows-latest
             target: x86_64-pc-windows-msvc
 
-          # - host: windows-latest
-          #   target: i686-pc-windows-msvc
+          - host: windows-latest
+            target: i686-pc-windows-msvc
 
-          # - host: windows-latest
-          #   target: aarch64-pc-windows-msvc
-          #   setup_command: |
-          #     rustup target add aarch64-pc-windows-msvc
+          - host: windows-latest
+            target: aarch64-pc-windows-msvc
+            setup_command: |
+              rustup target add aarch64-pc-windows-msvc
 
-          # - host: macos-latest
-          #   target: x86_64-apple-darwin
-          #   strip_binary_path: strip
-          #   strip_binary_args: -x
+          - host: macos-latest
+            target: x86_64-apple-darwin
+            strip_binary_path: strip
+            strip_binary_args: -x
 
-          # - host: macos-latest
-          #   target: aarch64-apple-darwin
-          #   strip_binary_path: strip
-          #   strip_binary_args: -x
-          #   setup_command: |
-          #     rustup target add aarch64-apple-darwin;
-          #     sudo rm -Rf /Library/Developer/CommandLineTools/SDKs/*;
-          #     export CC=$(xcrun -f clang);
-          #     export CXX=$(xcrun -f clang++);
-          #     SYSROOT=$(xcrun --sdk macosx --show-sdk-path);
-          #     export CFLAGS="-isysroot $SYSROOT -isystem $SYSROOT";
+          - host: macos-latest
+            target: aarch64-apple-darwin
+            strip_binary_path: strip
+            strip_binary_args: -x
+            setup_command: |
+              rustup target add aarch64-apple-darwin;
+              sudo rm -Rf /Library/Developer/CommandLineTools/SDKs/*;
+              export CC=$(xcrun -f clang);
+              export CXX=$(xcrun -f clang++);
+              SYSROOT=$(xcrun --sdk macosx --show-sdk-path);
+              export CFLAGS="-isysroot $SYSROOT -isystem $SYSROOT";
 
-          # - host: ubuntu-latest
-          #   target: armv7-unknown-linux-gnueabihf
-          #   strip_binary_path: arm-linux-gnueabihf-strip
-          #   setup_command: |
-          #     sudo apt-get update &&
-          #     sudo apt-get install -y gcc-arm-linux-gnueabihf &&
-          #     sudo apt-get clean &&
-          #     sudo rm -rf /var/lib/apt/lists/* &&
-          #     rustup target add armv7-unknown-linux-gnueabihf
+          - host: ubuntu-latest
+            target: armv7-unknown-linux-gnueabihf
+            strip_binary_path: arm-linux-gnueabihf-strip
+            setup_command: |
+              sudo apt-get update &&
+              sudo apt-get install -y gcc-arm-linux-gnueabihf &&
+              sudo apt-get clean &&
+              sudo rm -rf /var/lib/apt/lists/* &&
+              rustup target add armv7-unknown-linux-gnueabihf
 
-          # - host: ubuntu-latest
-          #   target: aarch64-linux-android
-          #   strip_binary_path: ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
-          #   setup_command: |
-          #     rustup target add aarch64-linux-android
+          - host: ubuntu-latest
+            target: aarch64-linux-android
+            strip_binary_path: ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
+            setup_command: |
+              rustup target add aarch64-linux-android
 
-          # - host: ubuntu-latest
-          #   target: armv7-linux-androideabi
-          #   strip_binary_path: ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
-          #   setup_command: |
-          #     rustup target add armv7-linux-androideabi
+          - host: ubuntu-latest
+            target: armv7-linux-androideabi
+            strip_binary_path: ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
+            setup_command: |
+              rustup target add armv7-linux-androideabi
 
-          # - host: ubuntu-latest
-          #   target: aarch64-unknown-linux-gnu
-          #   docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
-          #   strip_binary_path: aarch64-unknown-linux-gnu-strip
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
+            strip_binary_path: aarch64-unknown-linux-gnu-strip
 
-          # - host: ubuntu-latest
-          #   target: x86_64-unknown-linux-gnu
-          #   docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
-          #   strip_binary_path: strip
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
+            strip_binary_path: strip
 
-          # - host: ubuntu-latest
-          #   target: x86_64-unknown-linux-musl
-          #   docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
-          #   strip_binary_path: strip
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            strip_binary_path: strip
 
-          # - host: ubuntu-latest
-          #   target: aarch64-unknown-linux-musl
-          #   docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
-          #   strip_binary_path: /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip
-          #   setup_command: |
-          #     rustup target add aarch64-unknown-linux-musl
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            strip_binary_path: /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip
+            setup_command: |
+              rustup target add aarch64-unknown-linux-musl
 
-          # # Note: Freebsd is a pretty special case, as such it doesn't really conform
-          # - host: macos-13
-          #   target: freebsd
+          # Note: Freebsd is a pretty special case, as such it doesn't really conform
+          - host: macos-13
+            target: freebsd
 
     runs-on: ${{ matrix.settings.host }}
 
@@ -199,3 +202,78 @@ jobs:
           path: |
             ./artifact-outputs/*.node
           if-no-files-found: error
+
+  publish_packages:
+    needs:
+      - build_bindings
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+
+      - uses: pnpm/action-setup@v3
+        with:
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "PNPM_STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v4
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.PNPM_STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Setup cargo cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ runner.os }}-cargo-store-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install pnpm dependencies
+        run: pnpm install
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifact-outputs
+
+      - name: Move artifacts
+        run: pnpm run --filter @napi-audio/* artifacts -d ../../artifact-outputs
+
+      - name: Run build
+        run: pnpm run build
+
+      - name: Run test
+        run: pnpm run test
+
+      - name: Get release version
+        run: echo "TAG_VERSION=$(node -p -e \"require('./package.json').version\")" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Run publish
+        run: |
+          pnpm config set provenance true
+          echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+          pnpm publish --access public
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.TAG_VERSION }}
+          files: ./artifact-outputs/*.node
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
