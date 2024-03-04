@@ -84,6 +84,10 @@ jobs:
             setup_command: |
               rustup target add aarch64-unknown-linux-musl
 
+          # Note: Freebsd is a pretty special case, as such it doesn't really conform
+          - host: macos-13
+            target: freebsd
+
     runs-on: ${{ matrix.settings.host }}
 
     steps:
@@ -148,6 +152,34 @@ jobs:
             pnpm run build-native -- --target ${{ matrix.settings.target }} &&
             chmod +x ./scripts/strip-symbols.sh &&
             ./scripts/strip-symbols.sh ${{ matrix.settings.strip_binary_path }} ${{ matrix.settings.strip_binary_args }}
+
+      - name: "[FreeBSD] Build native module"
+        if: ${{ matrix.settings.target == 'freebsd' }}
+        uses: cross-platform-actions/action@v0.23.0
+        env:
+          DEBUG: napi:*
+          RUSTUP_IO_THREADS: 1
+        with:
+          operating_system: freebsd
+          version: "13.2"
+          memory: 13G
+          cpu_count: 3
+          environment_variables: "DEBUG RUSTUP_IO_THREADS"
+          shell: bash
+          run: |
+            sudo pkg install -y -f curl node libnghttp2 npm
+            sudo npm install -g yarn --ignore-scripts
+            curl https://sh.rustup.rs -sSf --output rustup.sh
+            sh rustup.sh -y --profile minimal --default-toolchain beta
+            curl -fsSL https://get.pnpm.io/install.sh | sh -
+            source "$HOME/.cargo/env"
+            echo "~~~~ rustc --version ~~~~"
+            rustc --version
+            echo "~~~~ node -v ~~~~"
+            node -v
+            echo "~~~~ pnpm -v ~~~~"
+            pnpm -v
+            pnpm run build-native -- --target ${{ matrix.settings.target }}
 
       # END OS SPECIFIC STEPS
 
