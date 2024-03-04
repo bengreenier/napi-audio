@@ -12,8 +12,8 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          # - host: windows-latest
-          #   target: x86_64-pc-windows-msvc
+          - host: windows-latest
+            target: x86_64-pc-windows-msvc
 
           # - host: windows-latest
           #   target: i686-pc-windows-msvc
@@ -84,9 +84,9 @@ jobs:
           #   setup_command: |
           #     rustup target add aarch64-unknown-linux-musl
 
-          # Note: Freebsd is a pretty special case, as such it doesn't really conform
-          - host: macos-13
-            target: x86_64-unknown-freebsd
+          # # Note: Freebsd is a pretty special case, as such it doesn't really conform
+          # - host: macos-13
+          #   target: freebsd
 
     runs-on: ${{ matrix.settings.host }}
 
@@ -133,7 +133,7 @@ jobs:
           version: 0.11.0
 
       - name: "[Non-Docker] Build native module"
-        if: ${{ !matrix.settings.docker && matrix.settings.target != 'x86_64-unknown-freebsd' }}
+        if: ${{ !matrix.settings.docker && matrix.settings.target != 'freebsd' }}
         run: |
           sh -c "${{ matrix.settings.setup_command }}" &&
           pnpm run build-native -- --target ${{ matrix.settings.target }} &&
@@ -154,7 +154,7 @@ jobs:
             ./scripts/strip-symbols.sh ${{ matrix.settings.strip_binary_path }} ${{ matrix.settings.strip_binary_args }}
 
       - name: "[FreeBSD] Build native module"
-        if: ${{ matrix.settings.target == 'x86_64-unknown-freebsd' }}
+        if: ${{ matrix.settings.target == 'freebsd' }}
         uses: cross-platform-actions/action@v0.23.0
         env:
           DEBUG: napi:*
@@ -184,15 +184,18 @@ jobs:
             pnpm -v
             pnpm install
             # turborepo is not supported on freebsd so just use pnpm with a filter to execute
-            pnpm run --filter @napi-audio/* build-native --target ${{ matrix.settings.target }}
+            pnpm run --filter @napi-audio/* build-native --target x86_64-unknown-freebsd
 
       # END OS SPECIFIC STEPS
+
+      - name: Copy binding artifact
+        run: mkdir ./artifacts && ./scripts/copy-artifacts.sh ./artifacts
+        shell: bash
 
       - name: Upload binding artifact
         uses: actions/upload-artifact@v4
         with:
           name: bindings-${{ matrix.settings.target }}
           path: |
-            ./packages/**/*.node
-            !**/node_modules/**/*.node
+            ./artifacts/*.node
           if-no-files-found: error
