@@ -12,77 +12,77 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          - host: windows-latest
-            target: x86_64-pc-windows-msvc
+          # - host: windows-latest
+          #   target: x86_64-pc-windows-msvc
 
-          - host: windows-latest
-            target: i686-pc-windows-msvc
+          # - host: windows-latest
+          #   target: i686-pc-windows-msvc
 
-          - host: windows-latest
-            target: aarch64-pc-windows-msvc
-            setup_command: |
-              rustup target add aarch64-pc-windows-msvc
+          # - host: windows-latest
+          #   target: aarch64-pc-windows-msvc
+          #   setup_command: |
+          #     rustup target add aarch64-pc-windows-msvc
 
-          - host: macos-latest
-            target: x86_64-apple-darwin
-            strip_binary_path: strip
-            strip_binary_args: -x
+          # - host: macos-latest
+          #   target: x86_64-apple-darwin
+          #   strip_binary_path: strip
+          #   strip_binary_args: -x
 
-          - host: macos-latest
-            target: aarch64-apple-darwin
-            strip_binary_path: strip
-            strip_binary_args: -x
-            setup_command: |
-              rustup target add aarch64-apple-darwin;
-              sudo rm -Rf /Library/Developer/CommandLineTools/SDKs/*;
-              export CC=$(xcrun -f clang);
-              export CXX=$(xcrun -f clang++);
-              SYSROOT=$(xcrun --sdk macosx --show-sdk-path);
-              export CFLAGS="-isysroot $SYSROOT -isystem $SYSROOT";
+          # - host: macos-latest
+          #   target: aarch64-apple-darwin
+          #   strip_binary_path: strip
+          #   strip_binary_args: -x
+          #   setup_command: |
+          #     rustup target add aarch64-apple-darwin;
+          #     sudo rm -Rf /Library/Developer/CommandLineTools/SDKs/*;
+          #     export CC=$(xcrun -f clang);
+          #     export CXX=$(xcrun -f clang++);
+          #     SYSROOT=$(xcrun --sdk macosx --show-sdk-path);
+          #     export CFLAGS="-isysroot $SYSROOT -isystem $SYSROOT";
 
-          - host: ubuntu-latest
-            target: armv7-unknown-linux-gnueabihf
-            strip_binary_path: arm-linux-gnueabihf-strip
-            setup_command: |
-              sudo apt-get update &&
-              sudo apt-get install -y gcc-arm-linux-gnueabihf &&
-              sudo apt-get clean &&
-              sudo rm -rf /var/lib/apt/lists/* &&
-              rustup target add armv7-unknown-linux-gnueabihf
+          # - host: ubuntu-latest
+          #   target: armv7-unknown-linux-gnueabihf
+          #   strip_binary_path: arm-linux-gnueabihf-strip
+          #   setup_command: |
+          #     sudo apt-get update &&
+          #     sudo apt-get install -y gcc-arm-linux-gnueabihf &&
+          #     sudo apt-get clean &&
+          #     sudo rm -rf /var/lib/apt/lists/* &&
+          #     rustup target add armv7-unknown-linux-gnueabihf
 
-          - host: ubuntu-latest
-            target: aarch64-linux-android
-            strip_binary_path: ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
-            setup_command: |
-              rustup target add aarch64-linux-android
+          # - host: ubuntu-latest
+          #   target: aarch64-linux-android
+          #   strip_binary_path: ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
+          #   setup_command: |
+          #     rustup target add aarch64-linux-android
 
-          - host: ubuntu-latest
-            target: armv7-linux-androideabi
-            strip_binary_path: ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
-            setup_command: |
-              rustup target add armv7-linux-androideabi
+          # - host: ubuntu-latest
+          #   target: armv7-linux-androideabi
+          #   strip_binary_path: ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
+          #   setup_command: |
+          #     rustup target add armv7-linux-androideabi
 
-          - host: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
-            strip_binary_path: aarch64-unknown-linux-gnu-strip
+          # - host: ubuntu-latest
+          #   target: aarch64-unknown-linux-gnu
+          #   docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
+          #   strip_binary_path: aarch64-unknown-linux-gnu-strip
 
-          - host: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
-            strip_binary_path: strip
+          # - host: ubuntu-latest
+          #   target: x86_64-unknown-linux-gnu
+          #   docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
+          #   strip_binary_path: strip
 
-          - host: ubuntu-latest
-            target: x86_64-unknown-linux-musl
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
-            strip_binary_path: strip
+          # - host: ubuntu-latest
+          #   target: x86_64-unknown-linux-musl
+          #   docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+          #   strip_binary_path: strip
 
-          - host: ubuntu-latest
-            target: aarch64-unknown-linux-musl
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
-            strip_binary_path: /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip
-            setup_command: |
-              rustup target add aarch64-unknown-linux-musl
+          # - host: ubuntu-latest
+          #   target: aarch64-unknown-linux-musl
+          #   docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+          #   strip_binary_path: /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip
+          #   setup_command: |
+          #     rustup target add aarch64-unknown-linux-musl
 
           # Note: Freebsd is a pretty special case, as such it doesn't really conform
           - host: macos-13
@@ -172,6 +172,7 @@ jobs:
             sudo npm install -g yarn --ignore-scripts
             curl https://sh.rustup.rs -sSf --output rustup.sh
             sh rustup.sh -y --profile minimal --default-toolchain beta
+            mkdir ~/bin
             corepack enable --install-directory ~/bin
             export PATH="$HOME/bin:$PATH"
             source "$HOME/.cargo/env"
