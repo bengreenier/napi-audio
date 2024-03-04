@@ -189,7 +189,7 @@ jobs:
       # END OS SPECIFIC STEPS
 
       - name: Copy binding artifact
-        run: mkdir ./artifacts && ./scripts/copy-artifacts.sh ./artifacts
+        run: mkdir ./artifact-outputs && ./scripts/copy-artifacts.sh ./artifact-outputs
         shell: bash
 
       - name: Upload binding artifact
@@ -197,5 +197,5 @@ jobs:
         with:
           name: bindings-${{ matrix.settings.target }}
           path: |
-            ./artifacts/*.node
+            ./artifact-outputs/*.node
           if-no-files-found: error
