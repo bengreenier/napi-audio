@@ -1,5 +1,8 @@
 name: CD
 
+# This Workflow is a "reimagining" of https://github.com/napi-rs/package-template/blob/9cfa415c59a223b7b2baaa42e3e688e0e5233102/.github/workflows/CI.yml
+# Huge shoutout the the napi-rs folks, without whom none of this would've been possible :)
+
 permissions:
   contents: write
 
@@ -14,6 +17,15 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
+        # The settings matrix defines variables for each of the supported napi targets
+        #
+        # All of these are optional, and are used in the steps below to parameterize the build:
+        # host    - indicates the platform on which the build will take place
+        # target  - indicates the target we'll build an artifact for
+        # docker  - indicates we'll use a specific docker container for the build (running on the `host` platform)
+        # setup_command     - a command that'll run before the build occurs
+        # strip_binary_path - the path to strip, to remove debug info from the target binary
+        # strip_binary_args - additional arguments passed to strip
         settings:
           - host: windows-latest
             target: x86_64-pc-windows-msvc
@@ -261,7 +273,7 @@ jobs:
         run: pnpm run test
 
       - name: Get release version
-        run: echo "TAG_VERSION=$(node -p -e \"require('./package.json').version\")" >> $GITHUB_ENV
+        run: echo "TAG_VERSION=$(cat package.json | jq -r '.version')" >> $GITHUB_ENV
         shell: bash
 
       - name: Run publish
