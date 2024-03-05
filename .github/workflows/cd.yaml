@@ -280,7 +280,7 @@ jobs:
         run: |
           pnpm config set provenance true
           echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-          pnpm publish --no-git-checks --access public
+          pnpm -r exec pnpm publish --no-git-checks --access public
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
