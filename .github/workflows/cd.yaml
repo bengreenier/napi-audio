@@ -1,9 +1,19 @@
 name: CD
 
+# This Workflow is a "reimagining" of https://github.com/napi-rs/package-template/blob/9cfa415c59a223b7b2baaa42e3e688e0e5233102/.github/workflows/CI.yml
+# Huge shoutout the the napi-rs folks, without whom none of this would've been possible :)
+
+permissions:
+  contents: write
+
 on:
   push:
     branches:
       - main
+    paths-ignore:
+      - ".github/**"
+      - ".vscode/**"
+      - "README.md"
   workflow_dispatch:
 
 jobs:
@@ -11,6 +21,15 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
+        # The settings matrix defines variables for each of the supported napi targets
+        #
+        # All of these are optional, and are used in the steps below to parameterize the build:
+        # host    - indicates the platform on which the build will take place
+        # target  - indicates the target we'll build an artifact for
+        # docker  - indicates we'll use a specific docker container for the build (running on the `host` platform)
+        # setup_command     - a command that'll run before the build occurs
+        # strip_binary_path - the path to strip, to remove debug info from the target binary
+        # strip_binary_args - additional arguments passed to strip
         settings:
           - host: windows-latest
             target: x86_64-pc-windows-msvc
@@ -20,17 +39,20 @@ jobs:
 
           - host: windows-latest
             target: aarch64-pc-windows-msvc
+            setup_command: |
+              rustup target add aarch64-pc-windows-msvc
 
           - host: macos-latest
             target: x86_64-apple-darwin
             strip_binary_path: strip
-            strip_binary_args: +x
+            strip_binary_args: -x
 
           - host: macos-latest
             target: aarch64-apple-darwin
             strip_binary_path: strip
-            strip_binary_args: +x
+            strip_binary_args: -x
             setup_command: |
+              rustup target add aarch64-apple-darwin;
               sudo rm -Rf /Library/Developer/CommandLineTools/SDKs/*;
               export CC=$(xcrun -f clang);
               export CXX=$(xcrun -f clang++);
@@ -43,16 +65,21 @@ jobs:
             setup_command: |
               sudo apt-get update &&
               sudo apt-get install -y gcc-arm-linux-gnueabihf &&
-              apt-get clean 
-              && rm -rf /var/lib/apt/lists/*
+              sudo apt-get clean &&
+              sudo rm -rf /var/lib/apt/lists/* &&
+              rustup target add armv7-unknown-linux-gnueabihf
 
           - host: ubuntu-latest
             target: aarch64-linux-android
-            strip_binary_path: ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
+            strip_binary_path: ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
+            setup_command: |
+              rustup target add aarch64-linux-android
 
           - host: ubuntu-latest
             target: armv7-linux-androideabi
             strip_binary_path: ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip
+            setup_command: |
+              rustup target add armv7-linux-androideabi
 
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
@@ -76,12 +103,22 @@ jobs:
             setup_command: |
               rustup target add aarch64-unknown-linux-musl
 
+          # Note: Freebsd is a pretty special case, as such it doesn't really conform
+          - host: macos-13
+            target: freebsd
+
     runs-on: ${{ matrix.settings.host }}
+
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: dtolnay/rust-toolchain@stable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
 
       - uses: pnpm/action-setup@v3
         with:
@@ -92,7 +129,7 @@ jobs:
         run: |
           echo "PNPM_STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: Setup pnpm cache
         with:
           path: ${{ env.PNPM_STORE_PATH }}
@@ -110,11 +147,17 @@ jobs:
 
       # BEGIN OS SPECIFIC STEPS
 
+      - name: "[armv7-unknown-linux-gnueabihf] Install zig"
+        uses: goto-bus-stop/setup-zig@v2
+        if: ${{ matrix.settings.target == 'armv7-unknown-linux-gnueabihf' }}
+        with:
+          version: 0.11.0
+
       - name: "[Non-Docker] Build native module"
-        if: ${{ !matrix.settings.docker }}
+        if: ${{ !matrix.settings.docker && matrix.settings.target != 'freebsd' }}
         run: |
           sh -c "${{ matrix.settings.setup_command }}" &&
-          pnpm run build-native --target ${{ matrix.settings.target }} &&
+          pnpm run build-native -- --target ${{ matrix.settings.target }} &&
           chmod +x ./scripts/strip-symbols.sh &&
           ./scripts/strip-symbols.sh ${{ matrix.settings.strip_binary_path }} ${{ matrix.settings.strip_binary_args }}
 
@@ -127,17 +170,131 @@ jobs:
           run: |
             set -e &&
             sh -c "${{ matrix.settings.setup_command }}" &&
-            pnpm run build-native --target ${{ matrix.settings.target }} &&
+            pnpm run build-native -- --target ${{ matrix.settings.target }} &&
             chmod +x ./scripts/strip-symbols.sh &&
             ./scripts/strip-symbols.sh ${{ matrix.settings.strip_binary_path }} ${{ matrix.settings.strip_binary_args }}
 
+      - name: "[FreeBSD] Build native module"
+        if: ${{ matrix.settings.target == 'freebsd' }}
+        uses: cross-platform-actions/action@v0.23.0
+        env:
+          DEBUG: napi:*
+          RUSTUP_IO_THREADS: 1
+        with:
+          operating_system: freebsd
+          version: "13.2"
+          memory: 13G
+          cpu_count: 3
+          environment_variables: "DEBUG RUSTUP_IO_THREADS"
+          shell: bash
+          run: |
+            set -e
+            sudo pkg install -y -f curl node libnghttp2 npm
+            sudo npm install -g yarn --ignore-scripts
+            curl https://sh.rustup.rs -sSf --output rustup.sh
+            sh rustup.sh -y --profile minimal --default-toolchain stable
+            mkdir ~/bin
+            corepack enable --install-directory ~/bin
+            export PATH="$HOME/bin:$PATH"
+            source "$HOME/.cargo/env"
+            echo "~~~~ rustc --version ~~~~"
+            rustc --version
+            echo "~~~~ node -v ~~~~"
+            node -v
+            echo "~~~~ pnpm -v ~~~~"
+            pnpm -v
+            pnpm install
+            # turborepo is not supported on freebsd so just use pnpm with a filter to execute
+            pnpm run --filter @napi-audio/* build-native --target x86_64-unknown-freebsd
+
       # END OS SPECIFIC STEPS
+
+      - name: Copy binding artifact
+        run: |
+          mkdir ./artifact-outputs &&
+          chmod +x ./scripts/copy-artifacts.sh &&
+          ./scripts/copy-artifacts.sh ./artifact-outputs
+        shell: bash
 
       - name: Upload binding artifact
         uses: actions/upload-artifact@v4
         with:
           name: bindings-${{ matrix.settings.target }}
           path: |
-            ./packages/**/*.node
-            !node_modules/**/*.node
+            ./artifact-outputs/*.node
           if-no-files-found: error
+
+  publish_packages:
+    needs:
+      - build_bindings
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+
+      - uses: pnpm/action-setup@v3
+        with:
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "PNPM_STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v4
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.PNPM_STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Setup cargo cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ runner.os }}-cargo-store-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install pnpm dependencies
+        run: pnpm install
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifact-outputs
+
+      - name: Move artifacts
+        run: pnpm run --filter @napi-audio/* artifacts -d ../../artifact-outputs
+
+      - name: Run build
+        run: pnpm run build
+
+      - name: Run test
+        run: pnpm run test
+
+      - name: Get release version
+        run: echo "TAG_VERSION=$(cat package.json | jq -r '.version')" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Run publish
+        run: |
+          pnpm config set provenance true
+          echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+          pnpm -r exec pnpm publish --no-git-checks --access public
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.TAG_VERSION }}
+          files: ./artifact-outputs/*.node
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

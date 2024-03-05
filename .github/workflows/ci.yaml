@@ -1,0 +1,68 @@
+name: CI
+
+# This Workflow runs build/test workflows on the three major oses
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - ".github/**"
+      - ".vscode/**"
+      - "README.md"
+  workflow_dispatch:
+
+jobs:
+  build_test_lint:
+    strategy:
+      fail-fast: true
+      matrix:
+        settings:
+          - host: ubuntu-latest
+          - host: windows-latest
+          - host: macos-latest
+
+    runs-on: ${{ matrix.settings.host }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+
+      - uses: pnpm/action-setup@v3
+        with:
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "PNPM_STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v4
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.PNPM_STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-ci-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-ci-store-
+
+      - name: Setup cargo cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ runner.os }}-cargo-ci-store-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install pnpm dependencies
+        run: pnpm install
+
+      - name: Run build
+        run: pnpm run build
+
+      - name: Run test
+        run: pnpm run test
+
+      - name: Run lint
+        run: pnpm run lint
