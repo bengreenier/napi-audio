@@ -10,4 +10,7 @@ yarn.lock
 *.node
 .yarn
 __test__
+.turbo/
+*.rs
 renovate.json
+Cargo.toml
