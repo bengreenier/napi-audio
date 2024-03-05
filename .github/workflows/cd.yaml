@@ -242,6 +242,7 @@ jobs:
       - uses: pnpm/action-setup@v3
         with:
           run_install: false
+          registry-url: "https://registry.npmjs.org"
 
       - name: Get pnpm store directory
         shell: bash
@@ -285,11 +286,13 @@ jobs:
       - name: Run publish
         run: |
           pnpm config set provenance true
-          echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+          echo "//registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN" >> .npmrc
+          echo "registry=https://registry.npmjs.org/" >> .npmrc
+          echo "always-auth=true" >> .npmrc
           pnpm -r exec pnpm publish --no-git-checks --access public
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
