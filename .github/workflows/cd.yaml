@@ -10,6 +10,10 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - ".github/**"
+      - ".vscode/**"
+      - "README.md"
   workflow_dispatch:
 
 jobs:
@@ -104,6 +108,8 @@ jobs:
             target: freebsd
 
     runs-on: ${{ matrix.settings.host }}
+
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
