@@ -105,7 +105,7 @@ jobs:
 
           # Note: Freebsd is a pretty special case, as such it doesn't really conform
           - host: macos-13
-            target: freebsd
+            target: x86_64-unknown-freebsd
 
     runs-on: ${{ matrix.settings.host }}
 
@@ -154,7 +154,7 @@ jobs:
           version: 0.11.0
 
       - name: "[Non-Docker] Build native module"
-        if: ${{ !matrix.settings.docker && matrix.settings.target != 'freebsd' }}
+        if: ${{ !matrix.settings.docker && matrix.settings.target != 'x86_64-unknown-freebsd' }}
         run: |
           sh -c "${{ matrix.settings.setup_command }}" &&
           pnpm run build-native -- --target ${{ matrix.settings.target }} &&
@@ -175,7 +175,7 @@ jobs:
             ./scripts/strip-symbols.sh ${{ matrix.settings.strip_binary_path }} ${{ matrix.settings.strip_binary_args }}
 
       - name: "[FreeBSD] Build native module"
-        if: ${{ matrix.settings.target == 'freebsd' }}
+        if: ${{ matrix.settings.target == 'x86_64-unknown-freebsd' }}
         uses: cross-platform-actions/action@v0.23.0
         env:
           DEBUG: napi:*
@@ -205,7 +205,7 @@ jobs:
             pnpm -v
             pnpm install
             # turborepo is not supported on freebsd so just use pnpm with a filter to execute
-            pnpm run --filter @napi-audio/* build-native --target x86_64-unknown-freebsd
+            pnpm run --filter @napi-audio/* build-native --target ${{ matrix.settings.target }}
 
       # END OS SPECIFIC STEPS
 
