@@ -1,122 +1,22 @@
-use std::{
-  fmt::{Debug, Display},
-  io::Read,
-  marker::PhantomData,
-};
+use std::{fmt::Debug, marker::PhantomData};
 
-use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
 use symphonia::{
   core::{
     audio::{SampleBuffer, SignalSpec},
     codecs::{Decoder as Engine, DecoderOptions as EngineOptions, CODEC_TYPE_NULL},
     conv::ConvertibleSample,
     errors::Error as SymphoniaError,
-    formats::{FormatOptions, FormatReader, Track},
-    io::MediaSourceStream,
-    meta::{Limit, MetadataOptions},
-    probe::{Hint, ProbeResult, ProbedMetadata},
+    formats::{FormatReader, Track},
+    probe::{ProbeResult, ProbedMetadata},
   },
-  default::{get_codecs, get_probe},
+  default::get_codecs,
 };
-use thiserror::Error;
 use tracing::{info, trace};
 
-#[derive(Debug, Error)]
-pub enum Error {
-  #[error(transparent)]
-  Symphonia(#[from] SymphoniaError),
-  #[error("The decoder was reset, please try again")]
-  ResetRequired,
-  #[error("The decoder is waiting for additional data, please try again")]
-  InsufficientData,
-}
-
-type Result<T> = std::result::Result<T, Error>;
-
-#[derive(Debug, Error)]
-pub struct EndMarkerError;
-
-impl Display for EndMarkerError {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    f.debug_struct("EndMarkerError").finish()
-  }
-}
-
-pub enum CrossbeamChunk {
-  Data(Vec<u8>),
-  End,
-}
-
-#[derive(Clone)]
-pub struct CrossbeamReader {
-  rx: Receiver<CrossbeamChunk>,
-  offset: usize,
-  buffer: Vec<u8>,
-}
-
-impl Read for CrossbeamReader {
-  fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-    while self.offset >= self.buffer.len() {
-      if self.rx.is_empty() {
-        return Err(std::io::Error::new(
-          std::io::ErrorKind::UnexpectedEof,
-          "No data available for reading",
-        ));
-      }
-
-      self.buffer = match self.rx.recv() {
-        Ok(v) => match v {
-          CrossbeamChunk::Data(v) => v,
-          CrossbeamChunk::End => return Err(std::io::Error::other(EndMarkerError)),
-        },
-        Err(err) => return Err(std::io::Error::new(std::io::ErrorKind::NotConnected, err)),
-      };
-      self.offset = 0;
-    }
-    let size = std::cmp::min(buf.len(), self.buffer.len() - self.offset);
-    buf[..size].copy_from_slice(&self.buffer[self.offset..self.offset + size]);
-    self.offset += size;
-    Ok(size)
-  }
-}
-
-impl CrossbeamReader {
-  pub fn new(capacity: Option<usize>) -> (Sender<CrossbeamChunk>, Self) {
-    let (tx, rx) = match capacity {
-      Some(capacity) => bounded(capacity),
-      None => unbounded(),
-    };
-
-    (
-      tx,
-      Self {
-        rx,
-        offset: 0,
-        buffer: Vec::new(),
-      },
-    )
-  }
-}
-
-pub fn try_probe_format(
-  mss: MediaSourceStream,
-  hint: &Hint,
-  format_options: &FormatOptions,
-) -> Result<ProbeResult> {
-  let probe = get_probe();
-
-  let result = probe.format(
-    hint,
-    mss,
-    format_options,
-    &MetadataOptions {
-      limit_visual_bytes: Limit::Maximum(0),
-      ..Default::default()
-    },
-  )?;
-
-  Ok(result)
-}
+use super::{
+  error::{Error, Result},
+  io::EndMarkerError,
+};
 
 pub struct Decoder {
   metadata: ProbedMetadata,
@@ -189,8 +89,14 @@ impl<S: ConvertibleSample> Debug for DecodedSample<S> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     f.debug_struct("DecodedSample")
       .field("spec", &self.spec)
-      .field("buffer_len", &self.buffer.len())
+      .field("len", &self.len())
       .finish_non_exhaustive()
+  }
+}
+
+impl<S: ConvertibleSample> DecodedSample<S> {
+  pub fn len(&self) -> usize {
+    self.buffer.len()
   }
 }
 

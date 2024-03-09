@@ -3,7 +3,11 @@
 use std::io::BufReader;
 
 use crossbeam_channel::Sender;
-use decode::{try_probe_format, CrossbeamChunk, CrossbeamReader, Decoder as PlatformDecoder};
+use internal::{
+  decoder::Decoder as PlatformDecoder,
+  io::{CrossbeamChunk, CrossbeamReader},
+  try_probe_format,
+};
 use napi::{
   self,
   bindgen_prelude::{BufferSlice, Int16Array},
@@ -17,7 +21,9 @@ use tracing::{debug, info};
 use tracing_log::LogTracer;
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
-mod decode;
+use crate::internal::error::Error;
+
+mod internal;
 
 #[macro_use]
 extern crate napi_derive;
@@ -217,7 +223,7 @@ impl Decoder {
             decoded_sample.append(&mut data);
           }
           Err(ref err) => {
-            if matches!(err, decode::Error::InsufficientData) {
+            if matches!(err, Error::InsufficientData) {
               break;
             }
           }
