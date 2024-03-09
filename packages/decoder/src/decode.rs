@@ -8,7 +8,7 @@ use crossbeam_channel::{bounded, unbounded, Receiver, Sender};
 use symphonia::{
   core::{
     audio::{SampleBuffer, SignalSpec},
-    codecs::{Decoder as Engine, DecoderOptions as EngineOptions},
+    codecs::{Decoder as Engine, DecoderOptions as EngineOptions, CODEC_TYPE_NULL},
     conv::ConvertibleSample,
     errors::Error as SymphoniaError,
     formats::{FormatOptions, FormatReader, Track},
@@ -19,7 +19,7 @@ use symphonia::{
   default::{get_codecs, get_probe},
 };
 use thiserror::Error;
-use tracing::trace;
+use tracing::{info, trace};
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -132,9 +132,17 @@ impl TryFrom<ProbeResult> for Decoder {
     let reader = value.format;
     let metadata = value.metadata;
 
+    info!(available_tracks = ?reader.tracks(), "discovered tracks");
+
     let track = reader
-      .default_track()
-      .ok_or(SymphoniaError::Unsupported("Missing default track"))?;
+      .tracks()
+      .iter()
+      .find(|t| t.codec_params.codec != CODEC_TYPE_NULL)
+      .ok_or(SymphoniaError::Unsupported(
+        "No tracks with supported codecs found",
+      ))?;
+
+    info!(track_id = track.id, "selected track");
 
     let engine = codecs.make(&track.codec_params, &EngineOptions::default())?;
 
