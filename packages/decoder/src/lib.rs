@@ -198,7 +198,6 @@ impl Decoder {
       let mut decoded_spec = None;
       let mut decoded_sample = Vec::new();
 
-      // TODO(bengreenier): this blocks when we run out of shit to read
       for maybe_sample_result in decoder.iter_mut::<i16>() {
         debug!("attempting to process next sample");
 
